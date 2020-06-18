@@ -26,8 +26,10 @@ public class ATMachineTest {
     private ATMachine atMachine;
 
     private PinCode standardPinCode = PinCode.createPIN(1,2,3,4);
+    private PinCode wrongPinCode = PinCode.createPIN(1,2,3,5);
     private Card standardCard = Card.create("12341234");
     private Money standardWithdraw = new Money(150,Money.DEFAULT_CURRENCY);
+    private Money wrongWithdraw = new Money(155,Money.DEFAULT_CURRENCY);
 
 
 
@@ -37,11 +39,10 @@ public class ATMachineTest {
         atMachine = new ATMachine(bank, Money.DEFAULT_CURRENCY);
         atMachine.setDeposit(createDeposit());
 
-
     }
 
     @Test
-    public void WithdrawalWithStandardPinCodeStandardCardStandardWithdrawTest() throws AuthorizationException, ATMOperationException {
+    public void withdrawWithStandardPinCodeStandardCardStandardWithdrawTest() throws ATMOperationException, AuthorizationException {
         Mockito.when(bank.autorize(standardPinCode.getPIN(),standardCard.getNumber())).thenReturn(AuthorizationToken.create("1234"));
 
         Withdrawal withdrawal = atMachine.withdraw(standardPinCode,standardCard,standardWithdraw);
@@ -49,6 +50,20 @@ public class ATMachineTest {
 
         Assertions.assertTrue(withdrawal.getBanknotes().equals(expectedwithdrawal.getBanknotes()));
 
+    }
+
+    @Test
+    public void withdrawWithStandardPinCodeStandardCardWrongWithdrawExpectedExceptionTest() throws AuthorizationException {
+        Mockito.when(bank.autorize(standardPinCode.getPIN(),standardCard.getNumber())).thenReturn(AuthorizationToken.create("1234"));
+
+        Assertions.assertThrows(ATMOperationException.class, () -> atMachine.withdraw(standardPinCode,standardCard,wrongWithdraw));
+
+    }
+    @Test
+    public void withdrawWithWrongPinCodeStandardCardStandardWithdrawExpectedExceptionTest() throws AuthorizationException {
+        Mockito.when(bank.autorize(wrongPinCode.getPIN(),standardCard.getNumber())).thenThrow(AuthorizationException.class);
+
+        Assertions.assertThrows(ATMOperationException.class, () -> atMachine.withdraw(wrongPinCode,standardCard,standardWithdraw));
     }
 
 
