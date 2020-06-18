@@ -28,6 +28,7 @@ public class ATMachineTest {
     private PinCode standardPinCode = PinCode.createPIN(1,2,3,4);
     private PinCode wrongPinCode = PinCode.createPIN(1,2,3,5);
     private Card standardCard = Card.create("12341234");
+    private Card wrongCard = Card.create("12341235");
     private Money standardWithdraw = new Money(150,Money.DEFAULT_CURRENCY);
     private Money wrongWithdraw = new Money(155,Money.DEFAULT_CURRENCY);
 
@@ -64,6 +65,23 @@ public class ATMachineTest {
         Mockito.when(bank.autorize(wrongPinCode.getPIN(),standardCard.getNumber())).thenThrow(AuthorizationException.class);
 
         Assertions.assertThrows(ATMOperationException.class, () -> atMachine.withdraw(wrongPinCode,standardCard,standardWithdraw));
+    }
+
+    @Test
+    public void withdrawWithStandardPinCodeWrongCardStandardWithdrawExpectedExceptionTest() throws AuthorizationException {
+        Mockito.when(bank.autorize(standardPinCode.getPIN(),wrongCard.getNumber())).thenThrow(AuthorizationException.class);
+
+        Assertions.assertThrows(ATMOperationException.class, () -> atMachine.withdraw(standardPinCode,wrongCard,standardWithdraw));
+    }
+
+    @Test
+    public void withdrawWithStandardPinCodeStandardCardStandardWithdrawTestShouldCallMethods() throws ATMOperationException, AuthorizationException {
+        Mockito.when(bank.autorize(standardPinCode.getPIN(),standardCard.getNumber())).thenReturn(AuthorizationToken.create("1234"));
+
+        Withdrawal withdrawal = atMachine.withdraw(standardPinCode,standardCard,standardWithdraw);
+        Withdrawal expectedwithdraw = createWithdrawal();
+
+        Assertions.assertTrue(withdrawal.getBanknotes().equals(expectedwithdraw.getBanknotes()));
     }
 
 
